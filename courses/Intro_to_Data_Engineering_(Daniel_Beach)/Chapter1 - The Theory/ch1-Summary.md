@@ -19,11 +19,11 @@ These have to be kept in mind throught the whole process of design and put extra
 
 >Choosing storage and file types is one of the most important topics and with far-reaching consequences when designing data pipelines.
 
->a repeatable pipeline means:
-• Anyone must be able to run a data pipeline.
-• Anyone must be able to troubleshoot a pipeline.
-• Pipelines break, they will have to be re-run.
-• Pipelines should produce the same results (idempotent).
+>a repeatable pipeline means:  
+• Anyone must be able to run a data pipeline.  
+• Anyone must be able to troubleshoot a pipeline.  
+• Pipelines break, they will have to be re-run.  
+• Pipelines should produce the same results (idempotent).  
 
 > There should not be many instances of “hardcoded” values, like dates or numbers in the code. This inevitably means that an engineer will have to make a code change just to run a pipeline for some historic data. Is there no try: except: blocks? This probably means the author didn’t think about the pipeline in a resilient way.
 
