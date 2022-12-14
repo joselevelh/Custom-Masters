@@ -7,3 +7,10 @@ class Item(BaseModel):
     description: Union[str, None] = Field(default=None, title="The description of the item")
     price: float
     tax: Union[float, None] = None
+
+
+class User(BaseModel):
+    username: str
+    email: Union[str, None] = None
+    full_name: Union[str, None] = None
+    disabled: Union[bool, None] = None
