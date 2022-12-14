@@ -1,17 +1,28 @@
-from fastapi import FastAPI, Query, Form, File, UploadFile
+from fastapi import FastAPI, Query, Form, File, UploadFile, Depends
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import HTMLResponse
 from typing import List
 from schemas import Item
+from enum import Enum
+
+
+class Tags(Enum):
+    files = "files"
+    security = "security"
+    users = "users"
+
 
 app = FastAPI()
 
 
-@app.post("/files/")
+
+
+@app.post("/files/", tags=[Tags.files])
 async def create_files(files: List[bytes] = File()):
     return {"file_sizes": [len(file) for file in files]}
 
 
-@app.post("/uploadfiles/")
+@app.post("/uploadfiles/", tags=[Tags.files])
 async def create_upload_files(files: List[UploadFile]):
     return {"filenames": [file.filename for file in files]}
 
@@ -26,7 +37,8 @@ async def create_item(item: Item, buyer: str = Query(default=None, max_length=50
         item_dict.update({"last_buyer": buyer})
     return item_dict
 
-@app.get("/")
+
+@app.get("/", tags=[Tags.files])
 async def main():
     content = """
 <body>
