@@ -1,0 +1,16 @@
+
+# Logs
+*.log
+
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Pycharm
+.idea
+__pycache__
+
+# Virtual Env
+api_dev/venvfast_api_tutorial
+api_dev/venvfastapi
