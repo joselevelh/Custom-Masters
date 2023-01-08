@@ -2,14 +2,19 @@ from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from schemas import ImagePost, User
 
+
 post_db = {
     "josb": ["Tests", "test2"],
     "ceylan": ["test3"],
     "bongo": [],
 }
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 app = FastAPI()
+
+
+
 
 
 def fake_decode_token(token):
