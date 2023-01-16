@@ -5,10 +5,10 @@ from typing import List, Union
 from schemas import Item, User, UserInDB, Token, TokenData
 from enum import Enum
 from database import fake_users_db
-from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+import hashing
 import crud
 import models
 import schemas
@@ -23,7 +23,6 @@ class Tags(Enum):
     users = "users"
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "1d2f8417d0dfdbc7125e023d276c368a7fa7879df299ec87a71267b0386bdac0"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -65,9 +64,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/users/{user_id}/items/", response_model=schemas.Item)
-def create_item_for_user(
-        user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)
-):
+def create_item_for_user(user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
     return crud.create_user_item(db=db, item=item, user_id=user_id)
 
 
@@ -75,10 +72,6 @@ def create_item_for_user(
 def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     items = crud.get_items(db, skip=skip, limit=limit)
     return items
-
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
@@ -92,22 +85,20 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     return encoded_jwt
 
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-
-def authenticate_user(fake_db, email: str, password: str):
-    user = crud.get_user_by_email(fake_db, email)  # TODO: replace with real db
+def authenticate_user(email: str, password: str, db: Session):
+    print(f"database: {db}")
+    user = crud.get_user_by_email(db, email)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not hashing.verify_password(password, user.hashed_password):
         return False
     return user
 
 
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    print(f"Authenticating user with data: {form_data.username} and {form_data.password}")
+    user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -120,6 +111,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+    print(f"Got token: {token}")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -134,7 +126,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise credentials_exception
     db = get_db()  # TODO: Use this to replace fake_db?
-    user = crud.get_user_by_email(fake_users_db, email=token_data.email)
+    user = crud.get_user_by_email(db, email=token_data.email)
     if user is None:
         raise credentials_exception
     return user
