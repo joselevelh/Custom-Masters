@@ -125,7 +125,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    db = get_db()  # TODO: Use this to replace fake_db?
+    db = get_db()
     user = crud.get_user_by_email(db, email=token_data.email)
     if user is None:
         raise credentials_exception
