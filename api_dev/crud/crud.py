@@ -12,8 +12,14 @@ def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.User).offset(skip).limit(limit).all()
+def get_friends(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    # Todo: Limit query to relationships where the user is involved
+    return db.query(models.Friend).offset(skip).limit(limit).all()
+
+
+def create_friend(db: Session, sender_id: int, receiver_id: int):
+    # Todo: Creates friendship in table and returns the ID
+    pass
 
 
 def create_user(db: Session, user: schemas.UserCreate):
@@ -23,10 +29,6 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
-
-
-def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Item).offset(skip).limit(limit).all()
 
 
 def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):

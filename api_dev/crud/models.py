@@ -13,15 +13,11 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
 
-    items = relationship("Item", back_populates="owner")
 
-
-class Item(Base):
-    __tablename__ = "items"
+class Friend(Base):
+    __tablename__ = "friends"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
-
-    owner = relationship("User", back_populates="items")
+    sender = relationship("User", index=True)
+    receiver = relationship("User", index=True)
+    accepted = Column(Boolean, default=False)
