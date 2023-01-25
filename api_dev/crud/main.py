@@ -155,6 +155,24 @@ def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_cur
     return crud.create_friend(db=db, sender_id=sender_id, receiver_id=receiver_id)
 
 
+@app.patch("/users/accept/{friend_id}", response_model=schemas.Friend)
+def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    friendship: schemas.Friend = crud.get_friend_by_id(db, friend_id=friend_id)
+    if not friendship:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending request from that user",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if current_user.id != friendship.receiver:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not the receiver of this friend request",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return crud.accept_friend(db=db, friend_id=friend_id)
+
+
 @app.get("/", tags=[Tags.files])
 async def main():
     content = """

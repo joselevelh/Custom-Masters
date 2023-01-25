@@ -16,6 +16,10 @@ def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
 
+def get_friend_by_id(db: Session, friend_id: int):
+    return db.query(models.Friend).filter(models.Friend.id == friend_id).first()
+
+
 def get_friends(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     # Todo: Limit query to relationships where the user is involved
     return db.query(models.Friend).offset(skip).limit(limit).all()
@@ -33,7 +37,11 @@ def create_friend(db: Session, sender_id: int, receiver_id: int):
 def accept_friend(db: Session, friend_id: int):
     # Assumes valid ID (verified before calling)
     friendship = db.query(models.Friend).filter(models.Friend.id == friend_id).first()
-    # TODO: How to update friendship?
+    if friendship:
+        friendship.accepted = True
+        db.commit()
+        db.refresh(friendship)
+    return friendship
 
 
 def create_user(db: Session, user: schemas.UserCreate):
