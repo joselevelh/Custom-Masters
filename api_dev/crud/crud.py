@@ -8,6 +8,10 @@ def get_user_by_id(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
+
+
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
@@ -18,8 +22,18 @@ def get_friends(db: Session, user_id: int, skip: int = 0, limit: int = 100):
 
 
 def create_friend(db: Session, sender_id: int, receiver_id: int):
-    # Todo: Creates friendship in table and returns the ID
-    pass
+    new_friend = models.Friend(sender=sender_id, receiver=receiver_id)
+    db.add(new_friend)
+    db.commit()
+    db.refresh(new_friend)
+    print(f"Friendship created: {new_friend}")
+    return new_friend
+
+
+def accept_friend(db: Session, friend_id: int):
+    # Assumes valid ID (verified before calling)
+    friendship = db.query(models.Friend).filter(models.Friend.id == friend_id).first()
+    # TODO: How to update friendship?
 
 
 def create_user(db: Session, user: schemas.UserCreate):
@@ -29,11 +43,3 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
-
-
-def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
-    db_item = models.Item(**item.dict(), owner_id=user_id)
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return db_item

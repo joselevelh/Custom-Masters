@@ -2,9 +2,7 @@ from fastapi import FastAPI, Query, Form, File, UploadFile, Depends, HTTPExcepti
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import HTMLResponse
 from typing import List, Union
-from schemas import Item, User, UserInDB, Token, TokenData
 from enum import Enum
-from database import fake_users_db
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
@@ -55,23 +53,16 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return users
 
 
-@app.get("/users/{user_id}", response_model=schemas.User)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_id(db, user_id=user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
-
-
-@app.post("/users/{user_id}/items/", response_model=schemas.Item)
-def create_item_for_user(user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
-    return crud.create_user_item(db=db, item=item, user_id=user_id)
-
-
-@app.get("/items/", response_model=List[schemas.Item])
-def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    items = crud.get_items(db, skip=skip, limit=limit)
-    return items
+#
+# @app.post("/users/{user_id}/items/", response_model=schemas.Item)
+# def create_item_for_user(user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
+#     return crud.create_user_item(db=db, item=item, user_id=user_id)
+#
+#
+# @app.get("/items/", response_model=List[schemas.Item])
+# def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+#     items = crud.get_items(db, skip=skip, limit=limit)
+#     return items
 
 
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
@@ -95,7 +86,7 @@ def authenticate_user(email: str, password: str, db: Session):
     return user
 
 
-@app.post("/token", response_model=Token)
+@app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     print(f"Authenticating user with data: {form_data.username} and {form_data.password}")
     user = authenticate_user(form_data.username, form_data.password, db)
@@ -110,7 +101,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     print(f"Got token: {token}")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -122,10 +113,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-        token_data = TokenData(email=email)
+        token_data = schemas.TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    db = get_db()
     user = crud.get_user_by_email(db, email=token_data.email)
     if user is None:
         raise credentials_exception
@@ -133,7 +123,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 async def get_current_active_user(current_user: schemas.User = Depends(get_current_user)):
-    if current_user.disabled:
+    if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Account disabled")
     return current_user
 
@@ -141,6 +131,28 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
 @app.get("/users/me")
 async def read_users_me(current_user: schemas.User = Depends(get_current_active_user)):
     return current_user
+
+
+@app.get("/users/{user_id}", response_model=schemas.User)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_id(db, user_id=user_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+
+@app.post("/users/add/{receiver_email}", response_model=schemas.Friend)  # TODO: Create a friend code system instead of just email
+def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    sender_id = current_user.id
+    receiver_user = crud.get_user_by_email(db, receiver_email)
+    if not receiver_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No users with that Email",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    receiver_id = receiver_user.id
+    return crud.create_friend(db=db, sender_id=sender_id, receiver_id=receiver_id)
 
 
 @app.get("/", tags=[Tags.files])

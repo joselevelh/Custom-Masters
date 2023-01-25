@@ -18,6 +18,6 @@ class Friend(Base):
     __tablename__ = "friends"
 
     id = Column(Integer, primary_key=True, index=True)
-    sender = relationship("User", index=True)
-    receiver = relationship("User", index=True)
+    sender = Column(Integer, ForeignKey("users.id"), index=True)
+    receiver = Column(Integer, ForeignKey("users.id"), index=True)
     accepted = Column(Boolean, default=False)
