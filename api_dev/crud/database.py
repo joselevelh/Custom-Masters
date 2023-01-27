@@ -11,15 +11,3 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
-
-
-fake_users_db = {
-    "johndoe": {
-        "id": 1,
-        "name": "John Doe",
-        "email": "johndoe@example.com",
-        "items": [],
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}

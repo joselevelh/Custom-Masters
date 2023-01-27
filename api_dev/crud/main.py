@@ -156,8 +156,8 @@ def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_cur
 
 
 @app.get("/friends/requests", response_model=List[schemas.Friend])
-def read_friend_requests(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    friends = crud.get_friends(db, user_id=2, skip=skip, limit=limit)
+def read_friend_requests(skip: int = 0, limit: int = 100, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    friends = crud.get_friends(db=db, receiver_id=current_user.id, skip=skip, limit=limit)
     return friends
 
 

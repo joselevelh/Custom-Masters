@@ -20,9 +20,13 @@ def get_friend_by_id(db: Session, friend_id: int):
     return db.query(models.Friend).filter(models.Friend.id == friend_id).first()
 
 
-def get_friends(db: Session, user_id: int = None, skip: int = 0, limit: int = 100):
-    # Todo: Limit query to relationships where the user is involved
-    return db.query(models.Friend).offset(skip).limit(limit).all()
+def get_friends(db: Session, receiver_id: int = None, skip: int = 0, limit: int = 100):
+    if not receiver_id:
+        print(f"Printing ALL friend relationships, this should only be a debug tool!")
+        friends = db.query(models.Friend).offset(skip).limit(limit).all()
+    else:
+        friends = db.query(models.Friend).filter(models.Friend.receiver == receiver_id).offset(skip).limit(limit).all()
+    return friends
 
 
 def create_friend(db: Session, sender_id: int, receiver_id: int):
