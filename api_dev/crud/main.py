@@ -141,7 +141,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/users/add/{receiver_email}", response_model=schemas.Friend)  # TODO: Create a friend code system instead of just email
+@app.post("/friends/add/{receiver_email}", response_model=schemas.Friend)  # TODO: Create a friend code system instead of just email
 def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     sender_id = current_user.id
     receiver_user = crud.get_user_by_email(db, receiver_email)
@@ -155,7 +155,13 @@ def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_cur
     return crud.create_friend(db=db, sender_id=sender_id, receiver_id=receiver_id)
 
 
-@app.patch("/users/accept/{friend_id}", response_model=schemas.Friend)
+@app.get("/friends/requests", response_model=List[schemas.Friend])
+def read_friend_requests(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    friends = crud.get_friends(db, user_id=2, skip=skip, limit=limit)
+    return friends
+
+
+@app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend)
 def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     friendship: schemas.Friend = crud.get_friend_by_id(db, friend_id=friend_id)
     if not friendship:
