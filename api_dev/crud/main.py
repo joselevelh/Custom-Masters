@@ -53,18 +53,6 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return users
 
 
-#
-# @app.post("/users/{user_id}/items/", response_model=schemas.Item)
-# def create_item_for_user(user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
-#     return crud.create_user_item(db=db, item=item, user_id=user_id)
-#
-#
-# @app.get("/items/", response_model=List[schemas.Item])
-# def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     items = crud.get_items(db, skip=skip, limit=limit)
-#     return items
-
-
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -177,20 +165,3 @@ def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_curre
             headers={"WWW-Authenticate": "Bearer"},
         )
     return crud.accept_friend(db=db, friend_id=friend_id)
-
-
-@app.get("/", tags=[Tags.files])
-async def main():
-    content = """
-<body>
-<form action="/files/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</form>
-<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</form>
-</body>
-    """
-    return HTMLResponse(content=content)
