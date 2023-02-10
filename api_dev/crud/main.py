@@ -1,10 +1,18 @@
 from fastapi import FastAPI, Query, Form, File, UploadFile, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import HTMLResponse
-from typing import List
-from schemas import Item, User, UserInDB
+from typing import List, Union
 from enum import Enum
-from database import fake_users_db
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+import hashing
+import crud
+import models
+import schemas
+from database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
 
 
 class Tags(Enum):
@@ -13,95 +21,147 @@ class Tags(Enum):
     users = "users"
 
 
+SECRET_KEY = "1d2f8417d0dfdbc7125e023d276c368a7fa7879df299ec87a71267b0386bdac0"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-@app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_dict = fake_users_db.get(form_data.username)
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    user = UserInDB(**user_dict)
-    hashed_password = fake_hash_password(form_data.password)
-    if not hashed_password == user.hashed_password:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    return {"access_token": user.username, "token_type": "bearer"}
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+@app.post("/users/", response_model=schemas.User)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    return crud.create_user(db=db, user=user)
 
 
-def fake_decode_token(token):
-    # This doesn't provide any security at all
-    # Check the next version
-    user = get_user(fake_users_db, token)
+@app.get("/users/", response_model=List[schemas.User])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    users = crud.get_users(db, skip=skip, limit=limit)
+    return users
+
+
+def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def authenticate_user(email: str, password: str, db: Session):
+    print(f"database: {db}")
+    user = crud.get_user_by_email(db, email)
+    if not user:
+        return False
+    if not hashing.verify_password(password, user.hashed_password):
+        return False
     return user
 
 
-def fake_hash_password(password: str):
-    return "fakehashed" + password
-
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    user = fake_decode_token(token)
+@app.post("/token", response_model=schemas.Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    print(f"Authenticating user with data: {form_data.username} and {form_data.password}")
+    user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    print(f"Got token: {token}")
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = schemas.TokenData(email=email)
+    except JWTError:
+        raise credentials_exception
+    user = crud.get_user_by_email(db, email=token_data.email)
+    if user is None:
+        raise credentials_exception
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
+async def get_current_active_user(current_user: schemas.User = Depends(get_current_user)):
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="Account disabled")
     return current_user
 
 
 @app.get("/users/me")
-async def read_users_me(current_user: User = Depends(get_current_user)):
+async def read_users_me(current_user: schemas.User = Depends(get_current_active_user)):
     return current_user
 
 
-@app.post("/files/", tags=[Tags.files])
-async def create_files(files: List[bytes] = File()):
-    return {"file_sizes": [len(file) for file in files]}
+@app.get("/users/{user_id}", response_model=schemas.User)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_id(db, user_id=user_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
 
 
-@app.post("/uploadfiles/", tags=[Tags.files])
-async def create_upload_files(files: List[UploadFile]):
-    return {"filenames": [file.filename for file in files]}
+@app.post("/friends/add/{receiver_email}", response_model=schemas.Friend)  # TODO: Create a friend code system instead of just email
+def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    sender_id = current_user.id
+    receiver_user = crud.get_user_by_email(db, receiver_email)
+    if not receiver_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No users with that Email",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    receiver_id = receiver_user.id
+    return crud.create_friend(db=db, sender_id=sender_id, receiver_id=receiver_id)
 
 
-@app.put("/items/")
-async def create_item(item: Item, buyer: str = Query(default=None, max_length=50)):
-    item_dict = item.dict()
-    if item.tax:
-        price_with_tax = item.price + item.tax
-        item_dict.update({"price_with_tax": price_with_tax})
-    if buyer:  # This could be a way to state where to put the item we created (ex: under a user's buying history)
-        item_dict.update({"last_buyer": buyer})
-    return item_dict
+@app.get("/friends/requests", response_model=List[schemas.Friend])
+def read_friend_requests(skip: int = 0, limit: int = 100, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    friends = crud.get_friends(db=db, receiver_id=current_user.id, skip=skip, limit=limit)
+    return friends
 
 
-@app.get("/", tags=[Tags.files])
-async def main():
-    content = """
-<body>
-<form action="/files/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</form>
-<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-<input name="files" type="file" multiple>
-<input type="submit">
-</form>
-</body>
-    """
-    return HTMLResponse(content=content)
+@app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend)
+def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    friendship: schemas.Friend = crud.get_friend_by_id(db, friend_id=friend_id)
+    if not friendship:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending request from that user",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if current_user.id != friendship.receiver:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not the receiver of this friend request",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return crud.accept_friend(db=db, friend_id=friend_id)

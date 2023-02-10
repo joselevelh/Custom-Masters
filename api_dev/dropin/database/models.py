@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from database import Base
+from api_dev.dropin.database.database import Base
 
 
 class User(Base):
@@ -9,15 +9,18 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
-    name = Column(String)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
 
+    items = relationship("Item", back_populates="owner")
 
-class Friend(Base):
-    __tablename__ = "friends"
+
+class Item(Base):
+    __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, index=True)
-    sender = Column(Integer, ForeignKey("users.id"), index=True)
-    receiver = Column(Integer, ForeignKey("users.id"), index=True)
-    accepted = Column(Boolean, default=False)
+    title = Column(String, index=True)
+    description = Column(String, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+
+    owner = relationship("User", back_populates="items")
