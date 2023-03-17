@@ -14,3 +14,7 @@ __pycache__
 # Virtual Env
 api_dev/venvfast_api_tutorial
 api_dev/venvfastapi
+api_dev/venvreact
+
+# Node Modules
+api_dev/node_modules
