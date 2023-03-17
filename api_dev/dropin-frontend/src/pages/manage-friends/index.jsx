@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import apiClient from '../../client'
 function ManageFriends() {
     return(
         <>
@@ -9,16 +10,11 @@ function ManageFriends() {
 }
 function FriendsList() {
     const [users, setUsers] = useState([])
-    const requestOptions = {
-        method: "GET",
-        // headers: { "Content-type": "application/json" },
-        // body: JSON.stringify({ username, password })
-    }
+
     async function fetchUserList() {
         try {
-            const response = await fetch('http://127.0.0.1:8000/users/?skip=0&limit=100', requestOptions)
-            const userList = await response.json()
-            setUsers(userList)
+            const userList = await apiClient.get('users/?skip=0&limit=100')
+            setUsers(userList.data)
             console.log(users)
             return userList
         } catch (e) {
