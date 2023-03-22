@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import apiClient from '../../client'
+import {apiClient} from '../../client'
 function ManageFriends() {
     return(
         <>

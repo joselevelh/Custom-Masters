@@ -1,27 +1,34 @@
 import React, {useState} from 'react';
 import LoginForm from "../../components/LoginForm/LoginForm";
 import './index.css'
-import apiClient from "../../client";
+import { apiClient, loginClient } from "../../client";
+
 
 function Login() {
     const [loginForm, setLoginForm] = useState({email: '', password: ''});
-    async function login(email, password) {
+    async function login() {
         try {
-            const response = await apiClient.post('/login', loginForm);
-            localStorage.setItem('accessToken', response.data.accessToken);
+            const usernameForm = {
+                username: loginForm.email,
+                password: loginForm.password,
+            }
+            const response = await loginClient.post('/token', usernameForm);
+            console.log("Token Response:",response.data['access_token'])
+            localStorage.setItem('accessToken', response.data['access_token']);
             return response.data;
         } catch (error) {
             throw error;
         }
     }
-    function handleSubmit(e){
+    async function handleSubmit(e){
         e.preventDefault()
         console.log('Email:', loginForm.email)
         console.log('Password:', loginForm.password)
-
+        await login()
+        const hasToken = localStorage.getItem('accessToken')
+        console.log('Has token:', hasToken)
     }
     function handleChange(e){
-        console.log("Test Change");
         const { name, value } = e.target;
         setLoginForm({
             ...loginForm,
