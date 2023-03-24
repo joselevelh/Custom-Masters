@@ -2,29 +2,16 @@ import React, {useState} from 'react';
 import LoginForm from "../../components/LoginForm/LoginForm";
 import './index.css'
 import { apiClient, loginClient } from "../../client";
+import login_api from "../../components/LoginAPI/LoginAPI";
 
 
 function Login() {
     const [loginForm, setLoginForm] = useState({email: '', password: ''});
-    async function login() {
-        try {
-            const usernameForm = {
-                username: loginForm.email,
-                password: loginForm.password,
-            }
-            const response = await loginClient.post('/token', usernameForm);
-            console.log("Token Response:",response.data['access_token'])
-            localStorage.setItem('accessToken', response.data['access_token']);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    }
     async function handleSubmit(e){
         e.preventDefault()
         console.log('Email:', loginForm.email)
         console.log('Password:', loginForm.password)
-        await login()
+        await login_api(loginForm.email, loginForm.password)
         const hasToken = localStorage.getItem('accessToken')
         console.log('Has token:', hasToken)
     }
