@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import LoginForm from "../../components/LoginForm/LoginForm";
 import './index.css'
-import { apiClient, loginClient } from "../../client";
 import login_api from "../../components/LoginAPI/LoginAPI";
 
 

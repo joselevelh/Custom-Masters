@@ -1,38 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {apiClient} from '../../client'
+import React from 'react';
+import FriendsList from "../../components/FriendsList/FriendsList";
+import AddFriend from "../../components/AddFriend/AddFriend";
+import PendingRequests from "../../components/PendingRequests/PedingRequests";
 function ManageFriends() {
+    const TempEmail = "josefo1997@gmail.com"
     return(
         <>
-            <p>Manage Friends Page</p>
+            <h1>Manage Friends</h1>
+            <p style={{color:"grey"}} >Psst...your email is: {TempEmail} </p>
+            <AddFriend/>
+            <PendingRequests/>
             <FriendsList/>
         </>
         );
 }
-function FriendsList() {
-    const [users, setUsers] = useState([])
-
-    async function fetchUserList() {
-        try {
-            const userList = await apiClient.get('users/?skip=0&limit=100')
-            setUsers(userList.data)
-            console.log(users)
-            return userList
-        } catch (e) {
-            console.error(e)
-        }
-    }
-    useEffect(() =>{
-        fetchUserList()
-    },[])
-    return(
-        <div className="friends-list">
-            <h2>Friends:</h2>
-            <ul>
-                {users.map(user => <li key={user.id}>{user.name}</li>)}
-            </ul>
-        </div>
-    )
-}
 export default ManageFriends;
-
-
