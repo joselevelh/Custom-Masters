@@ -1,35 +1,16 @@
 import React, {useEffect, useState} from 'react';
-import jwtDecode from "jwt-decode"
+import {useSelector, useDispatch} from "react-redux";
 
 function Navbar() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    useEffect(() => {
-        try {
-            const token = localStorage.getItem('accessToken')
-            console.log('Has token:', token)
-            const decoded = jwtDecode(token);
-
-            if (decoded && decoded.exp && Date.now() < decoded.exp * 1000) {
-                // Token is still valid
-                setIsLoggedIn(true);
-                console.log("User is logged in!")
-            } else {
-                // Token has expired or is invalid
-                setIsLoggedIn(false);
-                console.log("User is not logged in!")
-            }
-        } catch (e) {
-            console.log(e)
-        }
-    }, []);
+    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+    const dispatch = useDispatch()
     let login_logout;
     const handleLogout = () => {
-        // client.logout();
-        setIsLoggedIn(false);
         localStorage.clear()
+        dispatch({type: 'LOGOUT'})
     }
-
-    if (isLoggedIn) {
+    console.log("Navbar Auth state: ", isAuthenticated)
+    if (isAuthenticated) {
         login_logout = <li className="nav-item" onClick={() => handleLogout()}>
             <a className="nav-link" href="/">Logout</a>
         </li>;
@@ -68,5 +49,27 @@ function Navbar() {
         </nav>
     );
 }
+
+// function setPageAuthStatus(setIsLoggedIn){
+//      useEffect(() => {
+//         try {
+//             const token = localStorage.getItem('accessToken')
+//             console.log('Has token:', token)
+//             const decoded = jwtDecode(token);
+//
+//             if (decoded && decoded.exp && Date.now() < decoded.exp * 1000) {
+//                 // Token is still valid
+//                 setIsLoggedIn(true);
+//                 console.log("User is logged in!")
+//             } else {
+//                 // Token has expired or is invalid
+//                 setIsLoggedIn(false);
+//                 console.log("User is not logged in!")
+//             }
+//         } catch (e) {
+//             console.log(e)
+//         }
+//     }, []);
+// }
 
 export default Navbar;
