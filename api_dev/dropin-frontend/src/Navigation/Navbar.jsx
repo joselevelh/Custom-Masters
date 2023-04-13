@@ -1,75 +1,55 @@
-import React, {useEffect, useState} from 'react';
-import {useSelector, useDispatch} from "react-redux";
+import React from 'react';
+import {useSelector, useDispatch} from 'react-redux';
+import {Navbar, Nav, Button} from 'react-bootstrap';
 
-function Navbar() {
+function MyNavbar() {
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-    const dispatch = useDispatch()
-    let login_logout;
+    const dispatch = useDispatch();
+
     const handleLogout = () => {
-        localStorage.clear()
-        dispatch({type: 'LOGOUT'})
-    }
-    console.log("Navbar Auth state: ", isAuthenticated)
-    if (isAuthenticated) {
-        login_logout = <li className="nav-item" onClick={() => handleLogout()}>
-            <a className="nav-link" href="/">Logout</a>
-        </li>;
-    } else {
-        login_logout = <li className="nav-item">
-            <a className="nav-link" href="/login">
-            Login
-        </a></li>;
-    }
+        localStorage.clear();
+        dispatch({type: 'LOGOUT'});
+    };
+
+    const loginLogout = isAuthenticated
+        ? (
+            <li className="nav-item" onClick={handleLogout}>
+                <a className="nav-link" href="/">
+                    Logout
+                </a>
+            </li>
+        ) : (
+            <li className="nav-item">
+                <a className="nav-link" href="/login">
+                    Login
+                </a>
+            </li>
+        );
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-            <a className="navbar-brand" href="/">
-                Drop-in
-            </a>
-            <div className="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul className="navbar-nav">
-                    <li className="nav-item">
-                        <a className="nav-link" href="/manage-friends">
+        <Navbar bg="transparent" expand="lg" className="mt-3 ms-3">
+            <div className="container d-flex justify-content-center">
+                <Navbar.Brand href="/" style={{fontSize: '1.5rem'}}>
+                    Lilas
+                </Navbar.Brand>
+                <Navbar.Toggle aria-controls="navbarNavDropdown"/>
+                <Navbar.Collapse id="navbarNavDropdown">
+                    <Nav className="ms-auto">
+                        <Nav.Link href="/manage-friends" className="text-dark">
                             Manage Friends
-                        </a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link" href="/map-view">
+                        </Nav.Link>
+                        <Nav.Link href="/map-view" className="text-dark">
                             Map View
-                        </a>
-                    </li>
-                    {login_logout}
-                    <li className="nav-item">
-                        <a className="nav-link" href="/sign-up">
+                        </Nav.Link>
+                        {loginLogout}
+                        <Nav.Link href="/sign-up" className="btn btn-primary text-light">
                             Sign-up
-                        </a>
-                    </li>
-                </ul>
+                        </Nav.Link>
+                    </Nav>
+                </Navbar.Collapse>
             </div>
-        </nav>
+        </Navbar>
     );
 }
 
-// function setPageAuthStatus(setIsLoggedIn){
-//      useEffect(() => {
-//         try {
-//             const token = localStorage.getItem('accessToken')
-//             console.log('Has token:', token)
-//             const decoded = jwtDecode(token);
-//
-//             if (decoded && decoded.exp && Date.now() < decoded.exp * 1000) {
-//                 // Token is still valid
-//                 setIsLoggedIn(true);
-//                 console.log("User is logged in!")
-//             } else {
-//                 // Token has expired or is invalid
-//                 setIsLoggedIn(false);
-//                 console.log("User is not logged in!")
-//             }
-//         } catch (e) {
-//             console.log(e)
-//         }
-//     }, []);
-// }
-
-export default Navbar;
+export default MyNavbar;

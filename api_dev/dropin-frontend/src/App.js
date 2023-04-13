@@ -1,5 +1,5 @@
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import Navbar from "./Navigation/Navbar";
+import NavbarComponent from "./Navigation/Navbar";
 import Home from './pages/home';
 import ManageFriends from "./pages/manage-friends";
 import Login from "./pages/login";
@@ -13,7 +13,7 @@ import store from './store';
 function App() {
     return (
         <Provider store={store}>
-                <Navbar/>
+                <NavbarComponent/>
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Home/>}/>
