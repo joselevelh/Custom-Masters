@@ -8,14 +8,15 @@ export default function checkTokenStatus() {
 
     if (decoded && decoded.exp && Date.now() < decoded.exp * 1000) {
       // Token is still valid
-      console.log('User is logged in!');
+      console.log('Token is valid!');
       return true;
     } else {
       // Token has expired or is invalid
-      console.log('User is not logged in!');
+      console.log('Token is invalid or does not exist!');
       return false;
     }
   } catch (e) {
     console.log(e);
+    return false
   }
 }
