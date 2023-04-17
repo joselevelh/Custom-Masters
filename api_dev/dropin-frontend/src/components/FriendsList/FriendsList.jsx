@@ -7,7 +7,7 @@ export default function FriendsList() {
 
     async function fetchUserList() {
         try {
-            const userList = await apiClient.get('users/?skip=0&limit=100')
+            const userList = await apiClient.get('users/?')
             setUsers(userList.data)
             console.log(users)
             return userList
@@ -17,7 +17,7 @@ export default function FriendsList() {
     }
     async function fetchFriendList() {
         try {
-            const userList = await apiClient.get('users/?skip=0&limit=100')
+            const userList = await apiClient.get('users/?')
             setUsers(userList.data)
             console.log(users)
             return userList

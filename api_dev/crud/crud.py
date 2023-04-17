@@ -5,7 +5,7 @@ import hashing
 
 
 def get_user_by_id(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(models.User).get(user_id)
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
@@ -20,13 +20,16 @@ def get_friend_by_id(db: Session, friend_id: int):
     return db.query(models.Friend).filter(models.Friend.id == friend_id).first()
 
 
-def get_friends(db: Session, receiver_id: int = None, skip: int = 0, limit: int = 100):
-    if not receiver_id:
-        print(f"Printing ALL friend relationships, this should only be a debug tool!")
-        friends = db.query(models.Friend).offset(skip).limit(limit).all()
-    else:
-        friends = db.query(models.Friend).filter(models.Friend.receiver == receiver_id).offset(skip).limit(limit).all()
-    return friends
+def get_friends(db: Session, receiver_id: int):
+    receiver = get_user_by_id(db, receiver_id)
+    accepted_friends = [friend for friend in receiver.friends if friend.accepted]
+    return accepted_friends
+
+
+def get_friend_requests(db: Session, receiver_id: int, skip: int = 0, limit: int = 20):
+    friend_requests = db.query(models.Friend).filter(models.Friend.receiver == receiver_id)\
+                                    .filter(models.Friend.accepted is False).offset(skip).limit(limit).all()
+    return friend_requests
 
 
 def create_friend(db: Session, sender_id: int, receiver_id: int):

@@ -154,10 +154,10 @@ def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_cur
 
 
 @app.get("/friends/requests", response_model=List[schemas.Friend])
-def read_friend_requests(skip: int = 0, limit: int = 100, current_user: schemas.User = Depends(get_current_active_user),
+def read_friend_requests(skip: int = 0, limit: int = 20, current_user: schemas.User = Depends(get_current_active_user),
                          db: Session = Depends(get_db)):
-    friends = crud.get_friends(db=db, receiver_id=current_user.id, skip=skip, limit=limit)
-    return friends
+    friend_requests = crud.get_friend_requests(db=db, receiver_id=current_user.id, skip=skip, limit=limit)
+    return friend_requests
 
 
 @app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend)
@@ -179,3 +179,7 @@ def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_curre
     return crud.accept_friend(db=db, friend_id=friend_id)
 
 
+@app.get("/friends/accepted", response_model=List[schemas.User])
+def read_my_friends(current_user: schemas.User = Depends(get_current_active_user),
+                    db: Session = Depends(get_db)):
+    accepted_friend = crud.get_friends(db=db, receiver_id=current_user.id)
