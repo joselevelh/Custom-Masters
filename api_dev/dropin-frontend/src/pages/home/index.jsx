@@ -27,7 +27,7 @@ function Home() {
       <Row className="mt-3">
         <Col>
           <p>
-            We're inspired by the concept of Digital Minimalism. Digital Minimalism is all about using technology
+            We're inspired by the concept of Digital Minimalism. Using technology
             intentionally, to enhance our lives rather than distract from them.
             That's why we've designed our app to be simple and focused, with no
             unnecessary features or distractions. We want you to use our app
