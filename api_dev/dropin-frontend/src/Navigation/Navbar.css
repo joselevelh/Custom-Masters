@@ -1,0 +1,13 @@
+.navbar {
+  position: relative;
+}
+
+.navbar:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background-color: #1a5bbc; /* Change this to your desired color */
+}

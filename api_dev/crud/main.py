@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query, Form, File, UploadFile, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from typing import List, Union
 from enum import Enum
@@ -27,6 +28,13 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -129,8 +137,10 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/friends/add/{receiver_email}", response_model=schemas.Friend)  # TODO: Create a friend code system instead of just email
-def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+@app.post("/friends/add/{receiver_email}",
+          response_model=schemas.Friend)  # TODO: Create a friend code system instead of just email
+def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_current_active_user),
+               db: Session = Depends(get_db)):
     sender_id = current_user.id
     receiver_user = crud.get_user_by_email(db, receiver_email)
     if not receiver_user:
@@ -144,13 +154,15 @@ def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_cur
 
 
 @app.get("/friends/requests", response_model=List[schemas.Friend])
-def read_friend_requests(skip: int = 0, limit: int = 100, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
-    friends = crud.get_friends(db=db, receiver_id=current_user.id, skip=skip, limit=limit)
-    return friends
+def read_friend_requests(skip: int = 0, limit: int = 20, current_user: schemas.User = Depends(get_current_active_user),
+                         db: Session = Depends(get_db)):
+    friend_requests = crud.get_friend_requests(db=db, receiver_id=current_user.id, skip=skip, limit=limit)
+    return friend_requests
 
 
 @app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend)
-def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user),
+                  db: Session = Depends(get_db)):
     friendship: schemas.Friend = crud.get_friend_by_id(db, friend_id=friend_id)
     if not friendship:
         raise HTTPException(
@@ -165,3 +177,9 @@ def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_curre
             headers={"WWW-Authenticate": "Bearer"},
         )
     return crud.accept_friend(db=db, friend_id=friend_id)
+
+
+@app.get("/friends/accepted", response_model=List[schemas.User])
+def read_my_friends(current_user: schemas.User = Depends(get_current_active_user),
+                    db: Session = Depends(get_db)):
+    accepted_friend = crud.get_friends(db=db, receiver_id=current_user.id)
