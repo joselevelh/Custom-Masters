@@ -14,6 +14,7 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     is_active: bool = True
+    # TODO: Add this back after Alembic setup-> friends: List[int]
 
     class Config:
         orm_mode = True

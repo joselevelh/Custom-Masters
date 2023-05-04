@@ -21,14 +21,21 @@ def get_friend_by_id(db: Session, friend_id: int):
 
 
 def get_friends(db: Session, receiver_id: int):
-    receiver = get_user_by_id(db, receiver_id)
-    accepted_friends = [friend for friend in receiver.friends if friend.accepted]
+    receiver: schemas.User = get_user_by_id(db, receiver_id)
+    accepted_friends: list[schemas.Friend] = [friend for friend in receiver.friends if friend.accepted]
     return accepted_friends
 
 
 def get_friend_requests(db: Session, receiver_id: int, skip: int = 0, limit: int = 20):
-    friend_requests = db.query(models.Friend).filter(models.Friend.receiver == receiver_id)\
-                                    .filter(models.Friend.accepted is False).offset(skip).limit(limit).all()
+    friend_requests = db.query(models.Friend).filter(models.Friend.receiver == receiver_id) \
+        .filter(models.Friend.accepted == False).offset(skip).limit(limit).all()
+    print(f"Friends from the crud side: {friend_requests}")
+    return friend_requests
+
+
+# TODO: 'get_all_friend_requests' is for debug and should not enter production
+def get_all_friend_requests(db: Session, skip: int = 0, limit: int = 20):
+    friend_requests = db.query(models.Friend).filter(models.Friend.accepted == False).offset(skip).limit(limit).all()
     return friend_requests
 
 

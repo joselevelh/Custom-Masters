@@ -110,8 +110,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         if email is None:
             raise credentials_exception
         token_data = schemas.TokenData(email=email)
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        print(f"Error check: {e}")
+        raise credentials_exception from e
     user = crud.get_user_by_email(db, email=token_data.email)
     if user is None:
         raise credentials_exception
@@ -160,6 +161,12 @@ def read_friend_requests(skip: int = 0, limit: int = 20, current_user: schemas.U
     return friend_requests
 
 
+@app.get("/friends/requests/all", response_model=List[schemas.Friend])
+def read_all_friend_requests(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+    friend_requests = crud.get_all_friend_requests(db=db, skip=skip, limit=limit)
+    return friend_requests
+
+
 @app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend)
 def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user),
                   db: Session = Depends(get_db)):
@@ -183,3 +190,4 @@ def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_curre
 def read_my_friends(current_user: schemas.User = Depends(get_current_active_user),
                     db: Session = Depends(get_db)):
     accepted_friend = crud.get_friends(db=db, receiver_id=current_user.id)
+    return accepted_friend
