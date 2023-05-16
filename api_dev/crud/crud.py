@@ -22,7 +22,7 @@ def get_friend_by_id(db: Session, friend_id: int):
 
 def get_friends(db: Session, receiver_id: int):
     receiver: schemas.User = get_user_by_id(db, receiver_id)
-    accepted_friends: list[schemas.Friend] = [friend for friend in receiver.friends if friend.accepted]
+    accepted_friends: list[schemas.User] = receiver.friends
     return accepted_friends
 
 
