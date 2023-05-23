@@ -8,13 +8,13 @@ function ManageFriends() {
     return (
         <div className="row">
             <div className="col-md-2"></div>
-            <div className="col-md-8">
+            <div className="col-md-4">
                 <h1>Manage Friends</h1>
                 <AddFriend/>
                 <PendingRequests/>
                 <FriendsList/>
             </div>
-            <div className="col-md-2"></div>
+            <div className="col-md-6"></div>
         </div>
     );
 }
