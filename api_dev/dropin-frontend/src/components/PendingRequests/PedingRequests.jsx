@@ -12,7 +12,7 @@ export default function PendingRequests() {
             setRequests(requestList.data);
             console.log(requestList.data);
         } catch (e) {
-            console.error(e);
+            throw(e)
         }
     }
 
