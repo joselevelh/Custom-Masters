@@ -34,6 +34,24 @@ export default function PendingRequests() {
         }
     }
 
+    const acceptRequest = async (requestId) => {
+        // Handle accept logic here
+        try {
+            const response = await apiClient.patch(`friends/accept/${requestId}`);
+        } catch (error) {
+            console.log(`Error accepting request with id: ${requestId}`)
+        }
+        console.log(`Accepted friend request request ID: ${requestId}`);
+        window.location.reload();
+    };
+
+    const declineRequest = async (requestId) => {
+        // Handle decline logic here
+        // Todo: Create api endpoint to delete friend Request (Decline) should be patch @ friends/accept/${userId}`
+        console.log(`Declined friend request from request ID: ${requestId}`);
+        window.location.reload();
+    };
+
     useEffect(() => {
         fetchFriendRequests();
         // It's better to call convertRequestsToUsers() after the requests are fetched
@@ -49,8 +67,12 @@ export default function PendingRequests() {
         <div className="friends-list">
             <h2>Pending Requests:</h2>
             <ul>
-                {requestUsers.map((user) => (
-                    <li key={user.id}>{user.name}</li>
+                {requestUsers.map((user, index) => (
+                    <li key={user.id}>
+                        {user.name}
+                        <button className="btn btn-outline-primary btn-sm mx-1" onClick={() => acceptRequest(requests[index].id)}>Accept</button>
+                        <button className="btn btn-outline-danger btn-sm"onClick={() => declineRequest(requests[index].id)}>Decline</button>
+                    </li>
                 ))}
             </ul>
         </div>
