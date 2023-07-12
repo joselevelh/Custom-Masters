@@ -57,6 +57,17 @@ def accept_friend(db: Session, friend_id: int):
     return friendship
 
 
+def remove_friend(db: Session, friend_id: int):
+    # Assumes valid ID (verified before calling)
+    friendship = db.query(models.Friend).filter(models.Friend.id == friend_id).first()
+    if friendship:
+        # Delete Friendship
+        db.delete(friendship)  # Use delete instead of commit to remove the friendship from the database
+        db.commit()
+        return True  # Indicate successful deletion
+    return False  # Indicate friendship not found
+
+
 def create_user(db: Session, user: schemas.UserCreate):
     hashed_password = hashing.get_password_hash(user.password)
     db_user = models.User(email=user.email, name=user.name, hashed_password=hashed_password)
