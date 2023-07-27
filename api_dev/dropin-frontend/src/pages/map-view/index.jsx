@@ -22,24 +22,42 @@ function DropPinButton({onDropPin}) {
         location!</button>)
 }
 
+function EndPinSessionButton({onEndPinSession}) {
+    return (<button type="button" className="btn btn-danger drop-button " onClick={onEndPinSession}>End Session</button>)
+}
+
 function MapView() {
     const userLocation = useLocation()
     const [showPinInfoCard, setShowPinInfoCard] = useState(false);
+    const [activePinSession, setActivePinSession] = useState(false);
 
     // Event handler to toggle the visibility of the PinInfoCard
     const handleDropPin = () => {
         setShowPinInfoCard(!showPinInfoCard);
+        setActivePinSession((!activePinSession));
     };
 
-    return (
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-            <div style={{position: 'relative'}}>
-                <SimpleMap userLocation={userLocation}/>
-                {showPinInfoCard && <PinInfoCard/>}
+    if (!activePinSession) {
+        return (
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <div style={{position: 'relative'}}>
+                    <SimpleMap userLocation={userLocation}/>
+                    {showPinInfoCard && <PinInfoCard/>}
+                </div>
+                <DropPinButton onDropPin={handleDropPin}/>
             </div>
-            <DropPinButton onDropPin={handleDropPin}/>
-        </div>
-    );
+        );
+    } else {
+        return (
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <div style={{position: 'relative'}}>
+                    <SimpleMap userLocation={userLocation}/>
+                    {showPinInfoCard && <PinInfoCard/>}
+                </div>
+                <EndPinSessionButton onEndPinSession={handleDropPin}/>
+            </div>
+        );
+    }
 }
 
 export default MapView;
