@@ -10,7 +10,7 @@ export default function SimpleMap({userLocation}) {
     const [lng, setLng] = useState(null); // Initialize with null
     const [lat, setLat] = useState(null); // Initialize with null
     const [zoom, setZoom] = useState(11.8);
-    const dummyPins = {"Jake":[-117.15, 32.7,"Jake's Pin"], "Alexa":[-117.2, 32.6,"Alexa's Pin"] }
+    const dummyPins = {"Jake":[-117.15, 32.7,"Jake's Pin"], "Alexa":[-117.1771, 32.6928,"Alexa's Pin"] }
 
     useEffect(() => {
         if (!userLocation.latitude || !userLocation.longitude) return; // Wait for userLocation to be available
@@ -26,8 +26,8 @@ export default function SimpleMap({userLocation}) {
                 const marker = new mapboxgl.Marker({
                 color: "#e1c4ff"
             })
-                .setLngLat([, 32.7])
-                .setPopup(new mapboxgl.Popup().setHTML("<h1>Hello World!</h1>"))
+                .setLngLat([dummyPins[pin][0],dummyPins[pin][1]])
+                .setPopup(new mapboxgl.Popup().setHTML("<h1>"+dummyPins[pin][2]+"</h1>"))
                 .addTo(map.current);
             }
             map.current.on('move', () => {
