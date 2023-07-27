@@ -5,7 +5,7 @@ import SimpleMap from "../../components/Map/SimpleMap";
 
 function PinInfoCard() {
     return (
-        <div className="pinInfo card" style={{width: "18rem"}}>
+        <div className="pin-info-card" style={{width: "18rem"}}>
             <div className="card-body">
                 <h5 className="Pin Title">Jose's Pin</h5>
                 <div className="form-group">
@@ -18,7 +18,7 @@ function PinInfoCard() {
 }
 
 function DropPinButton({onDropPin}) {
-    return (<button type="button" className="btn btn-primary " onClick={onDropPin}>Drop a pin to share your
+    return (<button type="button" className="btn btn-primary drop-button " onClick={onDropPin}>Drop a pin to share your
         location!</button>)
 }
 
