@@ -4,7 +4,18 @@ import mapboxgl from "mapbox-gl";
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoiam9zZWZvMTk5NyIsImEiOiJjbGp5emxjYncwMWxhM2dvNDdmaWp5dWFkIn0.NlylS3S5YnEYHQ6JyAR-HA';
 
-export default function SimpleMap({userLocation}) {
+function addPinsToMap(pins, mapObject){
+    for (const pin in pins){
+                const marker = new mapboxgl.Marker({
+                color: "#e1c4ff"
+            })
+                .setLngLat([pins[pin][0],pins[pin][1]])
+                .setPopup(new mapboxgl.Popup().setHTML("<h1>"+pins[pin][2]+"</h1>"))
+                .addTo(mapObject.current);
+            }
+}
+
+export default function SimpleMap({userLocation, activePins}) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const [lng, setLng] = useState(null); // Initialize with null
@@ -22,14 +33,7 @@ export default function SimpleMap({userLocation}) {
                 center: [userLocation.longitude, userLocation.latitude], // Use user's location here
                 zoom: zoom
             });
-            for (const pin in dummyPins){
-                const marker = new mapboxgl.Marker({
-                color: "#e1c4ff"
-            })
-                .setLngLat([dummyPins[pin][0],dummyPins[pin][1]])
-                .setPopup(new mapboxgl.Popup().setHTML("<h1>"+dummyPins[pin][2]+"</h1>"))
-                .addTo(map.current);
-            }
+            addPinsToMap(dummyPins,map)
             map.current.on('move', () => {
                 setLng(map.current.getCenter().lng.toFixed(4));
                 setLat(map.current.getCenter().lat.toFixed(4));

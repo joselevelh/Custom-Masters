@@ -3,12 +3,12 @@ import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-load
 import useLocation from "../../custom-hooks/useLocation";
 import SimpleMap from "../../components/Map/SimpleMap";
 
-function PinInfoCard() {
+function PinInfoCard(onPinInfoSubmit) {
     return (
         <div className="pin-info-card" style={{width: "18rem"}}>
             <div className="card-body">
                 <h5 className="Pin Title">Jose's Pin</h5>
-                <div className="form-group">
+                <div className="form-group" onSubmit={onPinInfoSubmit}>
                     <label htmlFor="exampleFormControlTextarea1">Describe what your up to!</label>
                     <textarea className="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
                 </div>
@@ -24,6 +24,12 @@ function DropPinButton({onDropPin}) {
 
 function EndPinSessionButton({onEndPinSession}) {
     return (<button type="button" className="btn btn-danger drop-button " onClick={onEndPinSession}>End Session</button>)
+}
+
+const handlePinInfoSubmit = () => {
+//     Create pin object
+//     Send pin object to map
+    console.log("Submitted pin info")
 }
 
 function MapView() {
@@ -42,7 +48,7 @@ function MapView() {
             <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                 <div style={{position: 'relative'}}>
                     <SimpleMap userLocation={userLocation}/>
-                    {showPinInfoCard && <PinInfoCard/>}
+                    {showPinInfoCard && <PinInfoCard onPinInfoSubmit={handlePinInfoSubmit}/>}
                 </div>
                 <DropPinButton onDropPin={handleDropPin}/>
             </div>
