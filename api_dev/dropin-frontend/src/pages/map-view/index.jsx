@@ -15,8 +15,13 @@ function MapView() {
 
     // Event handler to toggle the visibility of the PinInfoCard
     function handleDropPin() {
-        setShowPinInfoCard(!showPinInfoCard)
-        setActivePinSession((!activePinSession))
+        setShowPinInfoCard(true)
+        setActivePinSession(true)
+    }
+
+    function handleEndPinSession() {
+        setShowPinInfoCard(false)
+        setActivePinSession(false)
     }
 
     function handlePinInfoChange(e){
@@ -28,7 +33,7 @@ function MapView() {
         // TODO: Send pin object to map
         e.preventDefault()
         console.log("Submitting pin info: "+ pinInfo)
-
+        setShowPinInfoCard(false)
     }
 
 
@@ -47,9 +52,9 @@ function MapView() {
             <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                 <div style={{position: 'relative'}}>
                     <SimpleMap userLocation={userLocation}/>
-                    {showPinInfoCard && <PinInfoCard/>}
+                    {showPinInfoCard && <PinInfoCard onChange={handlePinInfoChange} onSubmit = {handlePinInfoSubmit}/>}
                 </div>
-                <EndPinSessionButton onEndPinSession={handleDropPin}/>
+                <EndPinSessionButton onEndPinSession={handleEndPinSession}/>
             </div>
         );
     }
