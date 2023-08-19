@@ -22,6 +22,7 @@ function MapView() {
     function handleEndPinSession() {
         setShowPinInfoCard(false)
         setActivePinSession(false)
+        console.log("Ended Session")
     }
 
     function handlePinInfoChange(e){
@@ -32,7 +33,7 @@ function MapView() {
         // TODO: Create pin object
         // TODO: Send pin object to map
         e.preventDefault()
-        console.log("Submitting pin info: "+ pinInfo)
+        console.log("Submitting pin info: "+ pinInfo.value)
         setShowPinInfoCard(false)
     }
 
