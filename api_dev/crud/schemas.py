@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 from typing import Union, List
 
@@ -24,10 +26,21 @@ class Friend(BaseModel):
         orm_mode = True
 
 
+class Pin(BaseModel):
+    is_active: bool
+    session_start_time: datetime
+    session_end_time: datetime
+    current_members: List[UserBase] = []
+    location: List[float]  # [long, lat]
+    description: str
+    owner: UserBase
+
+
 class User(UserBase):
     id: int
     is_active: bool = True
     friends: List[UserBase] = []
+    pin: Pin
 
 
 class UserInDB(User):
