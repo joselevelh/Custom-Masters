@@ -6,21 +6,12 @@ class UserBase(BaseModel):
     email: str
     name: str
 
-
-class UserCreate(UserBase):
-    password: str
-
-
-class User(UserBase):
-    id: int
-    is_active: bool = True
-
     class Config:
         orm_mode = True
 
 
-class UserInDB(User):
-    hashed_password: str
+class UserCreate(UserBase):
+    password: str
 
 
 class Friend(BaseModel):
@@ -31,6 +22,16 @@ class Friend(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class User(UserBase):
+    id: int
+    is_active: bool = True
+    friends: List[UserBase] = []
+
+
+class UserInDB(User):
+    hashed_password: str
 
 
 class Token(BaseModel):

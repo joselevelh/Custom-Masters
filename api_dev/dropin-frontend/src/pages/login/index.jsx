@@ -19,7 +19,7 @@ function Login() {
         console.log('Has token:', hasToken)
         if (hasToken){
             dispatch({ type: 'LOGIN' })
-            navigate("/")
+            navigate("/map-view")
         }
         else{
             console.log('TODO: User facing error message')

@@ -4,28 +4,17 @@ import useAuthOrRedirect from "../../custom-hooks/useAuthOrRedirect";
 
 export default function FriendsList() {
     const [users, setUsers] = useState([])
-
-    async function fetchUserList() {
-        try {
-            const userList = await apiClient.get('users/?')
-            setUsers(userList.data)
-            console.log(users)
-            return userList
-        } catch (e) {
-            console.error(e)
-        }
-    }
-    async function fetchFriendList() {
-        try {
-            const userList = await apiClient.get('users/?')
-            setUsers(userList.data)
-            console.log(users)
-            return userList
-        } catch (e) {
-            console.error(e)
-        }
-    }
     useAuthOrRedirect("/login")
+     async function fetchFriendList() {
+        try {
+            const userList = await apiClient.get('/friends/accepted')
+            setUsers(userList.data)
+            console.log(users)
+            return userList
+        } catch (e) {
+            console.error(e)
+        }
+    }
     useEffect(() =>{
         fetchFriendList()
     },[])

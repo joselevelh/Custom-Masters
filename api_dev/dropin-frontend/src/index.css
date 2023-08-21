@@ -11,3 +11,33 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.map-container {
+  height: 800px;
+  width: 1200px;
+}
+
+.map-view-container {
+  position: relative;
+}
+
+/*.drop-button {*/
+/*  position: absolute;*/
+/*  bottom: 20px; !* Adjust the distance from the bottom as needed *!*/
+/*  left: 50%;*/
+/*  transform: translateX(-50%);*/
+/*  z-index: 1; !* Ensure the button is above the map *!*/
+/*}*/
+
+.pin-info-card {
+  position: absolute;
+  top: 60%;
+  left: 75%;
+  transform: translateX(-50%);
+  z-index: 2; /* Ensure the card is above the map and the button */
+  background-color: white;
+  padding: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
