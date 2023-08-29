@@ -1,5 +1,6 @@
-from datetime import datetime
+from __future__ import annotations
 
+from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Union, List
 
@@ -27,13 +28,16 @@ class Friend(BaseModel):
 
 
 class Pin(BaseModel):
+    id: int
     is_active: bool
     session_start_time: datetime
     session_end_time: datetime
-    current_members: List[UserBase] = []
-    location: List[float]  # [long, lat]
+    current_members: List[int] = []
+    location_long: float
+    location_lat: float
     description: str
-    owner: UserBase
+    owner: List[User]  # Circular dependency being fixed by annotations
+    owner_id: int
 
 
 class User(UserBase):
@@ -41,6 +45,7 @@ class User(UserBase):
     is_active: bool = True
     friends: List[UserBase] = []
     pin: Pin
+    pin_id: int
 
 
 class UserInDB(User):
