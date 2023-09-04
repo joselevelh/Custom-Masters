@@ -25,7 +25,7 @@ class Pin(Base):
     location_long = Column(Float)
     location_lat = Column(Float)
     description = Column(String)
-    owner: Mapped["User"] = relationship(back_populates="pin")
+    owner: Mapped["User"] = relationship("User", back_populates="pin")
     owner_id = Column(Integer, ForeignKey('users.id'))
     member_count = Column(Integer, default=1)
 
@@ -42,5 +42,5 @@ class User(Base):
                            secondary="friends",
                            primaryjoin=id == Friend.sender,
                            secondaryjoin=id == Friend.receiver)
-    pin: Mapped["Pin"] = relationship(back_populates="owner")
+    pin: Mapped["Pin"] = relationship("Pin", back_populates="owner")
     pin_id = Column(Integer, ForeignKey('pins.id'))
