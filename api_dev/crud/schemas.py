@@ -36,7 +36,6 @@ class Pin(BaseModel):
     location_long: float
     location_lat: float
     description: str
-    owner: List[User]  # Circular dependency being fixed by annotations
     owner_id: int
 
 
