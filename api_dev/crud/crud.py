@@ -75,3 +75,28 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def create_pin(db: Session, pin: schemas.Pin):
+    """Add this Pin to db"""
+    pass
+
+
+def update_pin(db: Session, pin: schemas.Pin):
+    """Updates pin to match pin argument"""
+    pass
+
+
+def delete_pin(db: Session, pin_id):
+    """Removed Pin from db (should not be used to end pin Sessions)"""
+    pass
+
+
+def get_pin_by_id(db: Session, pin_id):
+    """Return the pin that matches the pin_id"""
+    pass
+
+
+def get_all_pins(db: Session):
+    """Return all pins in db (Debug only)"""
+    pass
