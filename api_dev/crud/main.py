@@ -17,16 +17,20 @@ models.Base.metadata.create_all(bind=engine)
 
 
 class Tags(Enum):
-    files = "files"
-    security = "security"
-    users = "users"
+    users = "Users"
+    products = "Products"
+    friends = "Friends"
+    pins = "Pins"
+    security = "Security"
 
 
 SECRET_KEY = "1d2f8417d0dfdbc7125e023d276c368a7fa7879df299ec87a71267b0386bdac0"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-app = FastAPI()
+app = FastAPI(
+    title="Lilas",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,7 +51,7 @@ def get_db():
         db.close()
 
 
-@app.post("/users/", response_model=schemas.User)
+@app.post("/users/", response_model=schemas.User, tags=[Tags.users.value])
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
@@ -55,7 +59,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 
-@app.get("/users/", response_model=List[schemas.User])
+@app.get("/users/", response_model=List[schemas.User], tags=[Tags.users.value])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)
     print(f"Example Users: {users[0].friends}")
@@ -82,7 +86,7 @@ def authenticate_user(email: str, password: str, db: Session):
     return user
 
 
-@app.post("/token", response_model=schemas.Token)
+@app.post("/token", response_model=schemas.Token, tags=[Tags.security.value])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     print(f"Authenticating user with data: {form_data.username} and {form_data.password}")
     user = authenticate_user(form_data.username, form_data.password, db)
@@ -124,12 +128,12 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
     return current_user
 
 
-@app.get("/users/me", response_model=schemas.User)
+@app.get("/users/me", response_model=schemas.User, tags=[Tags.users.value])
 async def read_users_me(current_user: schemas.User = Depends(get_current_active_user)):
     return current_user
 
 
-@app.get("/users/{user_id}", response_model=schemas.User)
+@app.get("/users/{user_id}", response_model=schemas.User, tags=[Tags.users.value])
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_id(db, user_id=user_id)
     if db_user is None:
@@ -137,8 +141,8 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/friends/add/{receiver_email}",
-          response_model=schemas.Friend)  # TODO: Create a friend code system instead of just email
+@app.post("/friends/add/{receiver_email}", response_model=schemas.Friend,
+          tags=[Tags.friends.value])  # TODO: Create a friend code system instead of just email
 def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_current_active_user),
                db: Session = Depends(get_db)):
     sender_id = current_user.id
@@ -153,20 +157,20 @@ def add_friend(receiver_email: str, current_user: schemas.User = Depends(get_cur
     return crud.create_friend(db=db, sender_id=sender_id, receiver_id=receiver_id)
 
 
-@app.get("/friends/requests", response_model=List[schemas.Friend])
+@app.get("/friends/requests", response_model=List[schemas.Friend], tags=[Tags.friends.value])
 def read_friend_requests(skip: int = 0, limit: int = 20, current_user: schemas.User = Depends(get_current_active_user),
                          db: Session = Depends(get_db)):
     friend_requests = crud.get_friend_requests(db=db, receiver_id=current_user.id, skip=skip, limit=limit)
     return friend_requests
 
 
-@app.get("/friends/requests/all", response_model=List[schemas.Friend])
+@app.get("/friends/requests/all", response_model=List[schemas.Friend], tags=[Tags.friends.value])
 def read_all_friend_requests(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
     friend_requests = crud.get_all_friend_requests(db=db, skip=skip, limit=limit)
     return friend_requests
 
 
-@app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend)
+@app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend, tags=[Tags.friends.value])
 def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user),
                   db: Session = Depends(get_db)):
     friendship: schemas.Friend = crud.get_friend_by_id(db, friend_id=friend_id)
@@ -185,8 +189,58 @@ def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_curre
     return crud.accept_friend(db=db, friend_id=friend_id)
 
 
-@app.get("/friends/accepted", response_model=List[schemas.User])
-def read_my_friends(current_user: schemas.User = Depends(get_current_active_user),
-                    db: Session = Depends(get_db)):
+@app.get("/friends/accepted", response_model=List[schemas.User], tags=[Tags.friends.value])
+def read_my_friends(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     accepted_friend = crud.get_friends(db=db, receiver_id=current_user.id)
     return accepted_friend
+
+
+# TODO: Everything below this point!
+@app.post("/pins/start", response_model=schemas.Pin, tags=[Tags.pins.value])
+def start_pin_session():
+    pass
+
+
+@app.patch("/pins/end", response_model=schemas.Pin, tags=[Tags.pins.value])
+def end_pin_session():
+    pass
+
+
+@app.patch("/pins/join", response_model=schemas.Pin, tags=[Tags.pins.value])
+def join_pin_session():
+    pass
+
+
+@app.patch("/pins/leave", response_model=schemas.Pin, tags=[Tags.pins.value])
+def leave_pin_session():
+    pass
+
+
+@app.delete("/pins/delete", response_model=schemas.Pin, tags=[Tags.pins.value])
+def delete_pin_from_history():
+    pass
+
+
+@app.get("/pins/user_id", response_model=schemas.Pin, tags=[Tags.pins.value])
+def get_pin_by_user_id():
+    pass
+
+
+@app.get("/pins/pin_id", response_model=schemas.Pin, tags=[Tags.pins.value])
+def get_pin_by_pin_id():
+    pass
+
+
+@app.get("/pins/available", response_model=list[schemas.Pin], tags=[Tags.pins.value])
+def get_available_pins():
+    pass
+
+
+@app.get("/pins/me", response_model=schemas.Pin, tags=[Tags.pins.value])
+def get_my_active_pin():
+    pass
+
+
+@app.get("/pins/history", response_model=List[schemas.Pin], tags=[Tags.pins.value])
+def get_pin_history():
+    pass
