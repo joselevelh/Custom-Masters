@@ -32,11 +32,12 @@ class Pin(BaseModel):
     is_active: bool
     session_start_time: datetime
     session_end_time: datetime
-    current_members: List[int] = []
+    # current_members: List[int] = []
     location_long: float
     location_lat: float
     description: str
     owner_id: int
+    member_count: int
 
 
 class User(UserBase):

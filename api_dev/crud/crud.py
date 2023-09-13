@@ -77,26 +77,61 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
+def get_pin_by_id(db: Session, pin_id):
+    """Return the pin that matches the pin_id"""
+    pin = db.query(models.Pin).filter(models.Pin.id == pin_id)
+    return pin
+
+
+def get_all_pins(db: Session, active_only: bool = False, skip: int = 0, limit: int = 20):
+    """Return all pins in db (Debug only)"""
+    if active_only:
+        all_pins = db.query(models.Pin).filter(models.Pin.is_active)
+    else:
+        all_pins = db.query(models.Pin)
+    #  Todo: Include filtering by user id to get a user's pin history as well or in new get function
+    return all_pins
+
+
 def create_pin(db: Session, pin: schemas.Pin):
     """Add this Pin to db"""
-    pass
+    new_pin = models.Pin(
+        id=pin.id,
+        is_active=pin.is_active,
+        session_start_time=pin.session_start_time,
+        session_end_time=pin.session_end_time,
+        location_long=pin.location_long,
+        location_lat=pin.location_lat,
+        description=pin.description,
+        owner_id=pin.owner_id,
+        member_count=pin.member_count,
+    )
+    db.add(new_pin)
+    db.commit()
+    db.refresh(new_pin)
+    return new_pin
 
 
 def update_pin(db: Session, pin: schemas.Pin):
-    """Updates pin to match pin argument"""
-    pass
+    """Updates pin to match pin argument, returns status of change in db object"""
+    pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin.id).first()
+    if pin_in_db:
+        for key, value in pin.dict().items():
+            setattr(pin_in_db, key, value)
+        db.commit()
+    new_pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin.id).first()  # Check for change
+    return new_pin_in_db == pin
 
 
 def delete_pin(db: Session, pin_id):
-    """Removed Pin from db (should not be used to end pin Sessions)"""
-    pass
+    """Removed Pin from db (should not be used to end pin Sessions) Returns True if pin is no longer in db"""
+    pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin_id).first()
+    if pin_in_db:
+        db.delete(pin_in_db)
+        db.commit()
+        pin_check = db.query(models.Pin).filter(models.Pin.id == pin_id).first()
+        # If the pin_check is None, it means the pin was successfully deleted
+        return pin_check is None
+    # If the pin doesn't exist, return True to indicate that it's effectively "deleted"
+    return True
 
-
-def get_pin_by_id(db: Session, pin_id):
-    """Return the pin that matches the pin_id"""
-    pass
-
-
-def get_all_pins(db: Session):
-    """Return all pins in db (Debug only)"""
-    pass
