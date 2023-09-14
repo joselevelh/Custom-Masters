@@ -27,17 +27,23 @@ class Friend(BaseModel):
         orm_mode = True
 
 
-class Pin(BaseModel):
-    id: int
-    is_active: bool
+class PinBase(BaseModel):
     session_start_time: datetime
-    session_end_time: datetime
     # current_members: List[int] = []
     location_long: float
     location_lat: float
     description: str
+
+    class Config:
+        orm_mode = True
+
+
+class Pin(PinBase):
+    id: int
     owner_id: int
-    member_count: int
+    member_count: int = 1
+    is_active: bool = True
+    session_end_time: datetime = None
 
 
 class User(UserBase):

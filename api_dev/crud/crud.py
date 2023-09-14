@@ -93,22 +93,19 @@ def get_all_pins(db: Session, active_only: bool = False, skip: int = 0, limit: i
     return all_pins
 
 
-def create_pin(db: Session, pin: schemas.Pin):
+def create_pin(db: Session, user: schemas.User, pin: schemas.PinBase):
     """Add this Pin to db"""
     new_pin = models.Pin(
-        id=pin.id,
-        is_active=pin.is_active,
         session_start_time=pin.session_start_time,
-        session_end_time=pin.session_end_time,
         location_long=pin.location_long,
         location_lat=pin.location_lat,
         description=pin.description,
-        owner_id=pin.owner_id,
-        member_count=pin.member_count,
+        owner_id=user.id,
     )
     db.add(new_pin)
     db.commit()
     db.refresh(new_pin)
+    print(f"Pin created: {new_pin}")
     return new_pin
 
 
@@ -134,4 +131,3 @@ def delete_pin(db: Session, pin_id):
         return pin_check is None
     # If the pin doesn't exist, return True to indicate that it's effectively "deleted"
     return True
-

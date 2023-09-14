@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 import hashing
-import crud
+from crud import crud
 import models
 import schemas
 from database import SessionLocal, engine
@@ -196,9 +196,14 @@ def read_my_friends(current_user: schemas.User = Depends(get_current_active_user
 
 
 # TODO: Everything below this point!
+
+def is_pin_owner(user: schemas.User, pin: schemas.Pin):
+    return user.pin_id == pin.id and pin.owner_id == user.id
+
+
 @app.post("/pins/start", response_model=schemas.Pin, tags=[Tags.pins.value])
-def start_pin_session():
-    pass
+def start_pin_session(new_pin: schemas.Pin, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    return crud.create_pin(db=db, user=current_user, pin=new_pin)
 
 
 @app.patch("/pins/end", response_model=schemas.Pin, tags=[Tags.pins.value])
@@ -206,7 +211,7 @@ def end_pin_session():
     pass
 
 
-@app.patch("/pins/join", response_model=schemas.Pin, tags=[Tags.pins.value])
+@app.patch("/pins/join/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
 def join_pin_session():
     pass
 
@@ -216,17 +221,17 @@ def leave_pin_session():
     pass
 
 
-@app.delete("/pins/delete", response_model=schemas.Pin, tags=[Tags.pins.value])
+@app.delete("/pins/delete/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
 def delete_pin_from_history():
     pass
 
 
-@app.get("/pins/user_id", response_model=schemas.Pin, tags=[Tags.pins.value])
+@app.get("/pins/user_id/{user_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
 def get_pin_by_user_id():
     pass
 
 
-@app.get("/pins/pin_id", response_model=schemas.Pin, tags=[Tags.pins.value])
+@app.get("/pins/pin_id/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
 def get_pin_by_pin_id():
     pass
 
