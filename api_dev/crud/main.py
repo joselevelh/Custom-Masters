@@ -171,8 +171,7 @@ def read_all_friend_requests(skip: int = 0, limit: int = 20, db: Session = Depen
 
 
 @app.patch("/friends/accept/{friend_id}", response_model=schemas.Friend, tags=[Tags.friends.value])
-def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user),
-                  db: Session = Depends(get_db)):
+def accept_friend(friend_id: int, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     friendship: schemas.Friend = crud.get_friend_by_id(db, friend_id=friend_id)
     if not friendship:
         raise HTTPException(
@@ -207,13 +206,23 @@ def start_pin_session(new_pin: schemas.Pin, current_user: schemas.User = Depends
 
 
 @app.patch("/pins/end", response_model=schemas.Pin, tags=[Tags.pins.value])
-def end_pin_session():
-    pass
+def end_pin_session(end_time: datetime, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    pin: schemas.Pin = current_user.pin
+    pin.session_end_time = end_time
+    if crud.update_pin(db=db, pin=pin):
+        print("Updated pin successfully")
+    else:
+        print("Failed to update pin")
+    return current_user.pin
 
 
 @app.patch("/pins/join/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
-def join_pin_session():
-    pass
+def join_pin_session(pin_id: int, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=pin_id)
+    pin.member_count += 1
+    crud.update_pin(db=db, pin=pin)
+    crud.user_join_pin(db=db, user_id=current_user.id, pin_id=pin_id)
+    return crud.get_pin_by_id(db=db, pin_id=pin_id)
 
 
 @app.patch("/pins/leave", response_model=schemas.Pin, tags=[Tags.pins.value])

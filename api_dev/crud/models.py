@@ -44,3 +44,4 @@ class User(Base):
                            secondaryjoin=id == Friend.receiver)
     pin: Mapped["Pin"] = relationship("Pin", back_populates="owner")
     pin_id = Column(Integer, ForeignKey('pins.id'))
+    joined_pin_id = Column(Integer, ForeignKey('pins.id'))

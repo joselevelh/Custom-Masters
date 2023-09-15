@@ -120,7 +120,17 @@ def update_pin(db: Session, pin: schemas.Pin):
     return new_pin_in_db == pin
 
 
-def delete_pin(db: Session, pin_id):
+def user_join_pin(db: Session, user_id: int, pin_id: int):
+    """Updates user in db's joined_pin attribute with passed pin_id"""
+    joined_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if joined_user:
+        joined_user.joined_pin_id = pin_id
+        db.commit()
+        db.refresh(joined_user)
+    return joined_user
+
+
+def delete_pin(db: Session, pin_id: int):
     """Removed Pin from db (should not be used to end pin Sessions) Returns True if pin is no longer in db"""
     pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin_id).first()
     if pin_in_db:

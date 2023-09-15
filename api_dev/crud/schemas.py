@@ -52,6 +52,7 @@ class User(UserBase):
     friends: List[UserBase] = []
     pin: Pin
     pin_id: int
+    joined_pin_id: int
 
 
 class UserInDB(User):
