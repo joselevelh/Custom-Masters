@@ -28,13 +28,13 @@ def get_friends(db: Session, receiver_id: int):
 
 def get_friend_requests(db: Session, receiver_id: int, skip: int = 0, limit: int = 20):
     friend_requests = db.query(models.Friend).filter(models.Friend.receiver == receiver_id) \
-        .filter(models.Friend.accepted == False).offset(skip).limit(limit).all()
+        .filter(models.Friend.accepted is False).offset(skip).limit(limit).all()
     return friend_requests
 
 
 # TODO: 'get_all_friend_requests' is for debug and should not enter production
 def get_all_friend_requests(db: Session, skip: int = 0, limit: int = 20):
-    friend_requests = db.query(models.Friend).filter(models.Friend.accepted == False).offset(skip).limit(limit).all()
+    friend_requests = db.query(models.Friend).filter(models.Friend.accepted is False).offset(skip).limit(limit).all()
     return friend_requests
 
 
