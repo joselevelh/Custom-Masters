@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 import hashing
-from crud import crud
+import crud
 import models
 import schemas
 from database import SessionLocal, engine
@@ -219,6 +219,8 @@ def end_pin_session(end_time: datetime, current_user: schemas.User = Depends(get
 @app.patch("/pins/join/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
 def join_pin_session(pin_id: int, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
     pin.member_count += 1
     crud.update_pin(db=db, pin=pin)
     crud.user_join_pin(db=db, user_id=current_user.id, pin_id=pin_id)
@@ -226,8 +228,14 @@ def join_pin_session(pin_id: int, current_user: schemas.User = Depends(get_curre
 
 
 @app.patch("/pins/leave", response_model=schemas.Pin, tags=[Tags.pins.value])
-def leave_pin_session():
-    pass
+def leave_pin_session(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=current_user.pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
+    pin.member_count += 1
+    crud.update_pin(db=db, pin=pin)
+    crud.user_leave_pin(user_id=current_user.id, db=db)
+    return crud.get_pin_by_id(db=db, pin_id=pin.id)
 
 
 @app.delete("/pins/delete/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])

@@ -130,6 +130,16 @@ def user_join_pin(db: Session, user_id: int, pin_id: int):
     return joined_user
 
 
+def user_leave_pin(db: Session, user_id: int):
+    """Updates user in db to leave their current pin session"""
+    leaving_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if leaving_user:
+        leaving_user.joined_pin_id = None
+        db.commit()
+        db.refresh(leaving_user)
+    return leaving_user
+
+
 def delete_pin(db: Session, pin_id: int):
     """Removed Pin from db (should not be used to end pin Sessions) Returns True if pin is no longer in db"""
     pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin_id).first()
