@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import Union, List
+from typing import Union, List, Type
+
+# Forward Declaration to solve circular dependency
+User = None
+Pin = None
 
 
 class UserBase(BaseModel):
@@ -29,7 +33,7 @@ class Friend(BaseModel):
 
 class PinBase(BaseModel):
     session_start_time: datetime
-    # current_members: List[int] = []
+    joiner_list_: List[int] = []
     location_long: float
     location_lat: float
     description: str
@@ -50,9 +54,8 @@ class User(UserBase):
     id: int
     is_active: bool = True
     friends: List[UserBase] = []
-    pin: Pin
-    pin_id: int
-    joined_pin_id: int
+    pin_id: int = None
+    joined_pin_id: int = None
 
 
 class UserInDB(User):
