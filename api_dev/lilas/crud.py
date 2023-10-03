@@ -93,7 +93,7 @@ def get_all_pins(db: Session, active_only: bool = False, skip: int = 0, limit: i
     return all_pins
 
 
-def create_pin(db: Session, user: schemas.User, pin: schemas.PinBase):
+def create_pin(db: Session, user: schemas.User, pin: schemas.PinCreate):
     """Add this Pin to db"""
     new_pin = models.Pin(
         session_start_time=pin.session_start_time,
@@ -106,8 +106,11 @@ def create_pin(db: Session, user: schemas.User, pin: schemas.PinBase):
     db.commit()
     db.refresh(new_pin)
     print(f"Pin created: {new_pin}")
+    user.pin = new_pin.id
+    db.commit()
+    db.refresh(user)
+    print(f"Updated User: {user}")
     return new_pin
-
 
 def update_pin(db: Session, pin: schemas.Pin):
     """Updates pin to match pin argument, returns status of change in db object"""

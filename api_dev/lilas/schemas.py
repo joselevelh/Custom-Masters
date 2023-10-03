@@ -31,9 +31,8 @@ class Friend(BaseModel):
         orm_mode = True
 
 
-class PinBase(BaseModel):
+class PinCreate(BaseModel):
     session_start_time: datetime
-    joiner_list_: List[int] = []
     location_long: float
     location_lat: float
     description: str
@@ -42,10 +41,10 @@ class PinBase(BaseModel):
         orm_mode = True
 
 
-class Pin(PinBase):
+class Pin(PinCreate):
     id: int
     owner_id: int
-    member_count: int = 1
+    joiner_list_: List[int] = []
     is_active: bool = True
     session_end_time: datetime = None
 

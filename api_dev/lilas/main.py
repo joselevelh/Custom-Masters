@@ -197,12 +197,22 @@ def read_my_friends(current_user: schemas.User = Depends(get_current_active_user
 # TODO: Everything below this point!
 
 def is_pin_owner(user: schemas.User, pin: schemas.Pin):
-    return user.pin_id == pin.id and pin.owner_id == user.id
+    user_matches_pin = user.pin_id == pin.id
+    pin_matches_user = pin.owner_id == user.id
+    if user_matches_pin and pin_matches_user:
+        return True
+    else:
+        print("The user and pin do not match!")
+        return False
 
 
 @app.post("/pins/start", response_model=schemas.Pin, tags=[Tags.pins.value])
 def start_pin_session(new_pin: schemas.Pin, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
-    return crud.create_pin(db=db, user=current_user, pin=new_pin)
+    created_pin = crud.create_pin(db=db, user=current_user, pin=new_pin)
+    successful_set = is_pin_owner(user=crud.get_user_by_id(db=db, user_id=current_user.id), pin=created_pin)
+    if not successful_set:
+        raise HTTPException(status_code=422, detail="User does not have ownership of this pin")
+    return created_pin
 
 
 @app.patch("/pins/end", response_model=schemas.Pin, tags=[Tags.pins.value])
