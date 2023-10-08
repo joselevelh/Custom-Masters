@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 import hashing
+from datetime import datetime
 
 
 def get_user_by_id(db: Session, user_id: int):
@@ -79,7 +80,7 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 def get_pin_by_id(db: Session, pin_id):
     """Return the pin that matches the pin_id"""
-    pin = db.query(models.Pin).filter(models.Pin.id == pin_id)
+    pin: schemas.Pin = db.query(models.Pin).filter(models.Pin.id == pin_id)
     return pin
 
 
@@ -96,7 +97,6 @@ def get_all_pins(db: Session, active_only: bool = False, skip: int = 0, limit: i
 def create_pin(db: Session, user: schemas.User, pin: schemas.PinCreate):
     """Add this Pin to db"""
     new_pin = models.Pin(
-        session_start_time=pin.session_start_time,
         location_long=pin.location_long,
         location_lat=pin.location_lat,
         description=pin.description,
@@ -105,12 +105,26 @@ def create_pin(db: Session, user: schemas.User, pin: schemas.PinCreate):
     db.add(new_pin)
     db.commit()
     db.refresh(new_pin)
-    print(f"Pin created: {new_pin}")
-    user.pin = new_pin.id
+    print(f"Pin created: {new_pin}, Pin's OwnerID: {new_pin.owner_id}")
+    user.pin_id = new_pin.id
     db.commit()
     db.refresh(user)
-    print(f"Updated User: {user}")
+    print(f"Updated User: {user}, User's PinID: {user.pin_id}")
     return new_pin
+
+
+def end_pin(db: Session, user: schemas.User, pin: schemas.Pin):
+    """Update end time"""
+    pin.is_active = False
+    pin.session_end_time = datetime.utcnow()
+    user.pin_id = None
+    for member_id in pin.joiner_list:
+        user_leave_pin(db=db, user_id=member_id)
+    db.commit()
+    db.refresh(pin)
+    print(f"Pin Ended: {pin}")
+    return pin
+
 
 def update_pin(db: Session, pin: schemas.Pin):
     """Updates pin to match pin argument, returns status of change in db object"""
@@ -137,6 +151,8 @@ def user_leave_pin(db: Session, user_id: int):
     """Updates user in db to leave their current pin session"""
     leaving_user = db.query(models.User).filter(models.User.id == user_id).first()
     if leaving_user:
+        pin: schemas.Pin = get_pin_by_id(db=db, pin_id=leaving_user.joined_pin_id)
+        pin.joiner_list.remove(leaving_user.joined_pin_id)
         leaving_user.joined_pin_id = None
         db.commit()
         db.refresh(leaving_user)

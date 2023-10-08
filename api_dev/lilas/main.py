@@ -207,7 +207,7 @@ def is_pin_owner(user: schemas.User, pin: schemas.Pin):
 
 
 @app.post("/pins/start", response_model=schemas.Pin, tags=[Tags.pins.value])
-def start_pin_session(new_pin: schemas.Pin, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+def start_pin_session(new_pin: schemas.PinCreate, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     created_pin = crud.create_pin(db=db, user=current_user, pin=new_pin)
     successful_set = is_pin_owner(user=crud.get_user_by_id(db=db, user_id=current_user.id), pin=created_pin)
     if not successful_set:
@@ -216,14 +216,12 @@ def start_pin_session(new_pin: schemas.Pin, current_user: schemas.User = Depends
 
 
 @app.patch("/pins/end", response_model=schemas.Pin, tags=[Tags.pins.value])
-def end_pin_session(end_time: datetime, current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+def end_pin_session(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     pin: schemas.Pin = current_user.pin
-    pin.session_end_time = end_time
-    if crud.update_pin(db=db, pin=pin):
-        print("Updated pin successfully")
-    else:
-        print("Failed to update pin")
-    return current_user.pin
+    ended_pin: schemas.Pin = crud.end_pin(db=db, user=current_user, pin=pin)
+    if ended_pin.is_active or is_pin_owner(user=current_user, pin=ended_pin):
+        raise HTTPException(status_code=422, detail="Pin failed to disable or is still owned by user")
+    return ended_pin
 
 
 @app.patch("/pins/join/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
