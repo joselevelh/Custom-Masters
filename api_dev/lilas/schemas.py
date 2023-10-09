@@ -44,7 +44,7 @@ class PinCreate(BaseModel):
 class Pin(PinCreate):
     id: int
     owner_id: int
-    joiner_list: List[int] = []
+    # joiner_list: List[int] = []
     is_active: bool = True
     session_start_time: datetime = datetime.utcnow()
     session_end_time: datetime = None

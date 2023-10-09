@@ -26,7 +26,7 @@ class Pin(Base):
     location_lat = Column(Float)
     description = Column(String)
     owner_id = Column(Integer, ForeignKey("users.id"))
-    joiner_list = List[Integer]
+    # joiner_list = List[Integer] # May turn into array type if postgresql database is used
 
 
 class User(Base):

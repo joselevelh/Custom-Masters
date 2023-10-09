@@ -217,7 +217,7 @@ def start_pin_session(new_pin: schemas.PinCreate, current_user: schemas.User = D
 
 @app.patch("/pins/end", response_model=schemas.Pin, tags=[Tags.pins.value])
 def end_pin_session(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
-    pin: schemas.Pin = current_user.pin
+    pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=current_user.pin_id)
     ended_pin: schemas.Pin = crud.end_pin(db=db, user=current_user, pin=pin)
     if ended_pin.is_active or is_pin_owner(user=current_user, pin=ended_pin):
         raise HTTPException(status_code=422, detail="Pin failed to disable or is still owned by user")
@@ -229,7 +229,7 @@ def join_pin_session(pin_id: int, current_user: schemas.User = Depends(get_curre
     pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=pin_id)
     if not pin:
         raise HTTPException(status_code=404, detail="Pin not found")
-    pin.member_count += 1
+    # pin.member_count += 1
     crud.update_pin(db=db, pin=pin)
     crud.user_join_pin(db=db, user_id=current_user.id, pin_id=pin_id)
     return crud.get_pin_by_id(db=db, pin_id=pin_id)
@@ -240,7 +240,7 @@ def leave_pin_session(current_user: schemas.User = Depends(get_current_active_us
     pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=current_user.pin_id)
     if not pin:
         raise HTTPException(status_code=404, detail="Pin not found")
-    pin.member_count += 1
+    # pin.member_count += 1
     crud.update_pin(db=db, pin=pin)
     crud.user_leave_pin(user_id=current_user.id, db=db)
     return crud.get_pin_by_id(db=db, pin_id=pin.id)

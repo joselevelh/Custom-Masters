@@ -118,8 +118,8 @@ def end_pin(db: Session, user: schemas.User, pin: schemas.Pin):
     pin.is_active = False
     pin.session_end_time = datetime.utcnow()
     user.pin_id = None
-    for member_id in pin.joiner_list:
-        user_leave_pin(db=db, user_id=member_id)
+    # for member_id in pin.joiner_list:
+    #     user_leave_pin(db=db, user_id=member_id)
     db.commit()
     db.refresh(pin)
     print(f"Pin Ended: {pin}")
@@ -151,8 +151,8 @@ def user_leave_pin(db: Session, user_id: int):
     """Updates user in db to leave their current pin session"""
     leaving_user = db.query(models.User).filter(models.User.id == user_id).first()
     if leaving_user:
-        pin: schemas.Pin = get_pin_by_id(db=db, pin_id=leaving_user.joined_pin_id)
-        pin.joiner_list.remove(leaving_user.joined_pin_id)
+        # pin: schemas.Pin = get_pin_by_id(db=db, pin_id=leaving_user.joined_pin_id)
+        # pin.joiner_list.remove(leaving_user.joined_pin_id)
         leaving_user.joined_pin_id = None
         db.commit()
         db.refresh(leaving_user)
