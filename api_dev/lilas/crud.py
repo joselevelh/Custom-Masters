@@ -80,7 +80,7 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 def get_pin_by_id(db: Session, pin_id):
     """Return the pin that matches the pin_id"""
-    pin: schemas.Pin = db.query(models.Pin).filter(models.Pin.id == pin_id)
+    pin: schemas.Pin = db.query(models.Pin).filter(models.Pin.id == pin_id).first()
     return pin
 
 

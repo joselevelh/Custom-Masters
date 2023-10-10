@@ -218,6 +218,8 @@ def start_pin_session(new_pin: schemas.PinCreate, current_user: schemas.User = D
 @app.patch("/pins/end", response_model=schemas.Pin, tags=[Tags.pins.value])
 def end_pin_session(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=current_user.pin_id)
+    if not pin:
+        raise HTTPException(status_code=400, detail="Can't end pin because the user has no active pins")
     ended_pin: schemas.Pin = crud.end_pin(db=db, user=current_user, pin=pin)
     if ended_pin.is_active or is_pin_owner(user=current_user, pin=ended_pin):
         raise HTTPException(status_code=422, detail="Pin failed to disable or is still owned by user")
