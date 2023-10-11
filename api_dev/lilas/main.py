@@ -232,18 +232,17 @@ def join_pin_session(pin_id: int, current_user: schemas.User = Depends(get_curre
     if not pin:
         raise HTTPException(status_code=404, detail="Pin not found")
     # pin.member_count += 1
-    crud.update_pin(db=db, pin=pin)
     crud.user_join_pin(db=db, user_id=current_user.id, pin_id=pin_id)
     return crud.get_pin_by_id(db=db, pin_id=pin_id)
 
 
 @app.patch("/pins/leave", response_model=schemas.Pin, tags=[Tags.pins.value])
 def leave_pin_session(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
-    pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=current_user.pin_id)
+    pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=current_user.joined_pin_id)
     if not pin:
         raise HTTPException(status_code=404, detail="Pin not found")
     # pin.member_count += 1
-    crud.update_pin(db=db, pin=pin)
+    # crud.update_pin(db=db, pin=pin)
     crud.user_leave_pin(user_id=current_user.id, db=db)
     return crud.get_pin_by_id(db=db, pin_id=pin.id)
 

@@ -125,16 +125,16 @@ def end_pin(db: Session, user: schemas.User, pin: schemas.Pin):
     print(f"Pin Ended: {pin}")
     return pin
 
-
-def update_pin(db: Session, pin: schemas.Pin):
-    """Updates pin to match pin argument, returns status of change in db object"""
-    pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin.id).first()
-    if pin_in_db:
-        for key, value in pin.dict().items():
-            setattr(pin_in_db, key, value)
-        db.commit()
-    new_pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin.id).first()  # Check for change
-    return new_pin_in_db == pin
+#
+# def update_pin(db: Session, pin: schemas.Pin):
+#     """Updates pin to match pin argument, returns status of change in db object"""
+#     pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin.id).first()
+#     if pin_in_db:
+#         for key, value in pin.dict().items():
+#             setattr(pin_in_db, key, value)
+#         db.commit()
+#     new_pin_in_db = db.query(models.Pin).filter(models.Pin.id == pin.id).first()  # Check for change
+#     return new_pin_in_db == pin
 
 
 def user_join_pin(db: Session, user_id: int, pin_id: int):
