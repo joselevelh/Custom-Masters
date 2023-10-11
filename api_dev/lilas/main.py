@@ -247,18 +247,16 @@ def leave_pin_session(current_user: schemas.User = Depends(get_current_active_us
     return crud.get_pin_by_id(db=db, pin_id=pin.id)
 
 
-@app.delete("/pins/delete/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
-def delete_pin_from_history():
-    pass
+@app.delete("/pins/delete/{pin_id}", response_model=bool, tags=[Tags.pins.value])
+def delete_pin_from_history(pin_id: int,  db: Session = Depends(get_db)):
+    pin: schemas.Pin = crud.get_pin_by_id(db=db, pin_id=pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
+    return crud.delete_pin(pin_id=pin_id, db=db)
 
 
 @app.get("/pins/user_id/{user_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
 def get_pin_by_user_id():
-    pass
-
-
-@app.get("/pins/pin_id/{pin_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
-def get_pin_by_pin_id():
     pass
 
 
