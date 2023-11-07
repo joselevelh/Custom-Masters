@@ -256,20 +256,29 @@ def delete_pin_from_history(pin_id: int,  db: Session = Depends(get_db)):
 
 
 @app.get("/pins/user_id/{user_id}", response_model=schemas.Pin, tags=[Tags.pins.value])
-def get_pin_by_user_id():
-    pass
+def get_pin_by_user_id(pin_id: int,  db: Session = Depends(get_db)):
+    pin = crud.get_pin_by_id(db=db, pin_id=pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
+    return pin
 
 
 @app.get("/pins/available", response_model=list[schemas.Pin], tags=[Tags.pins.value])
-def get_available_pins():
+def get_available_pins(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     pass
 
 
 @app.get("/pins/me", response_model=schemas.Pin, tags=[Tags.pins.value])
-def get_my_active_pin():
-    pass
+def get_my_active_pin(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    pin = crud.get_pin_by_id(db=db, pin_id=current_user.pin_id)
+    print(f"Pin:{pin}")
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
+    if not pin.is_active:
+        raise HTTPException(status_code=400, detail="User's pin is not active")
+    return pin
 
 
 @app.get("/pins/history", response_model=List[schemas.Pin], tags=[Tags.pins.value])
-def get_pin_history():
-    pass
+def get_pin_history(current_user: schemas.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    return crud.get_user_pin_history(db=db, user_id=current_user.id)

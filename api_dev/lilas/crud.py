@@ -29,22 +29,22 @@ def get_friends(db: Session, receiver_id: int):
 
 def get_friend_requests(db: Session, receiver_id: int, skip: int = 0, limit: int = 20):
     friend_requests = db.query(models.Friend).filter(models.Friend.receiver == receiver_id) \
-        .filter(models.Friend.accepted is False).offset(skip).limit(limit).all()
+        .filter(models.Friend.accepted == False).offset(skip).limit(limit).all()
     return friend_requests
 
 
 # TODO: 'get_all_friend_requests' is for debug and should not enter production
 def get_all_friend_requests(db: Session, skip: int = 0, limit: int = 20):
-    friend_requests = db.query(models.Friend).filter(models.Friend.accepted is False).offset(skip).limit(limit).all()
+    friend_requests = db.query(models.Friend).filter(models.Friend.accepted == False).offset(skip).limit(limit).all()
     return friend_requests
 
 
 def create_friend(db: Session, sender_id: int, receiver_id: int):
-    new_friend = models.Friend(sender=sender_id, receiver=receiver_id)
+    new_friend = models.Friend(sender=sender_id, receiver=receiver_id, accepted=False)
     db.add(new_friend)
     db.commit()
     db.refresh(new_friend)
-    print(f"Friendship created: {new_friend}")
+    print(f"Friendship created: {new_friend}, is_accepted: {new_friend.accepted}")
     return new_friend
 
 
@@ -87,11 +87,25 @@ def get_pin_by_id(db: Session, pin_id):
 def get_all_pins(db: Session, active_only: bool = False, skip: int = 0, limit: int = 20):
     """Return all pins in db (Debug only)"""
     if active_only:
-        all_pins = db.query(models.Pin).filter(models.Pin.is_active)
+        all_pins = db.query(models.Pin).filter(models.Pin.is_active).offset(skip).limit(limit).all()
     else:
         all_pins = db.query(models.Pin)
     #  Todo: Include filtering by user id to get a user's pin history as well or in new get function
     return all_pins
+
+
+def get_users_available_pins(db: Session, user_id: int):
+    """Return all pins in db (Debug only)"""
+    friends = get_friends(db=db, receiver_id=user_id)  # Todo: Current known bug where only received friends show up
+    friend_ids = [user.id for user in friends]
+    available_pins = db.query(models.Pin).filter(models.Pin.is_active).filter(models.Pin.owner_id in friend_ids)
+    return available_pins
+
+
+def get_user_pin_history(db: Session, user_id: int, skip: int = 0, limit: int = 20):
+    """Return this user's history of pins created up to now"""
+    pin_history = db.query(models.Pin).filter(models.Pin.owner_id == user_id).offset(skip).limit(limit).all()
+    return pin_history
 
 
 def create_pin(db: Session, user: schemas.User, pin: schemas.PinCreate):
